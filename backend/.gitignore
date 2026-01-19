@@ -1,0 +1,14 @@
+# Ignore the virtual environment folder
+venv/
+env/
+
+# Ignore compiled python files
+__pycache__/
+*.py[cod]
+
+# Ignore environment variables (VERY IMPORTANT for security)
+.env
+
+# Ignore IDE settings (Optional but recommended)
+.idea/
+.vscode/
