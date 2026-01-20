@@ -57,6 +57,8 @@
                     if(report.is_rooted) risks.push("Rooted");
                     if(report.is_usb_debugging) risks.push("USB Debug");
                     if(report.is_emulator) risks.push("Emulator");
+                    if(report.is_sideloaded) risks.push("Sideloaded");
+                    if(report.is_usb_connected) risks.push("USB Connected");
                     const riskText = risks.length > 0 ? risks.join(", ") : "Safe";
 
                     tr.innerHTML = `

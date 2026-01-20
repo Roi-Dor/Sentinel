@@ -7,6 +7,8 @@ data class SecurityReport(
     val is_rooted: Boolean,
     val is_usb_debugging: Boolean,
     val is_emulator: Boolean,
-    val is_sideloaded: Boolean
+    val is_sideloaded: Boolean,
+    val is_usb_connected: Boolean
+
 )
 

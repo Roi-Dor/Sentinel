@@ -13,37 +13,45 @@ object SecurityScanner {
         var score = 100
 
         // ---------------------------------------------------
-        // CHECK 1: Root Access (The heavy hitter)
+        // CHECK 1: Root Access (Updated for your Emulator)
         // ---------------------------------------------------
         val isRooted = checkRootMethod1() || checkRootMethod2()
-        if (isRooted) score -= 40
+        if (isRooted) score -= 50 // almost no device should be rooted
 
         // ---------------------------------------------------
-        // CHECK 2: USB Debugging (The physical risk)
+        // CHECK 2: USB Debugging
         // ---------------------------------------------------
         val adbSetting = Settings.Global.getInt(context.contentResolver, Settings.Global.ADB_ENABLED, 0)
         val isUsbDebugging = (adbSetting == 1)
-        if (isUsbDebugging) score -= 30
+        if (isUsbDebugging) score -= 15
 
         // ---------------------------------------------------
-        // CHECK 3: Emulator Detection (The bot risk)
+        // CHECK 3: Emulator Detection (Updated for "sdk_gphone")
         // ---------------------------------------------------
         val isEmulator = (Build.FINGERPRINT.startsWith("generic")
                 || Build.FINGERPRINT.startsWith("unknown")
+                || Build.FINGERPRINT.contains("google/sdk_gphone") // <--- NEW CHECK
                 || Build.MODEL.contains("google_sdk")
                 || Build.MODEL.contains("Emulator")
-                || Build.MODEL.contains("Android SDK built for x86")
+                || Build.MODEL.contains("sdk_gphone") // <--- NEW CHECK
                 || Build.MANUFACTURER.contains("Genymotion"))
-        if (isEmulator) score -= 20
+        if (isEmulator) score -= 30
 
         // ---------------------------------------------------
-        // CHECK 4: Sideload Detection (The tampering risk)
+        // CHECK 4: Sideload Detection
         // ---------------------------------------------------
         val installer = context.packageManager.getInstallerPackageName(context.packageName)
         val isSideloaded = installer != "com.android.vending"
+        if (isSideloaded) score -= 0 //for now its 0 but in the future it should be 20
 
-
-        if (isSideloaded) score -= 20
+        // ---------------------------------------------------
+        // CHECK 5: Physical USB Connection (Data Port)
+        // ---------------------------------------------------
+        val batteryIntent = context.registerReceiver(null,
+            android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED))
+        val plugged = batteryIntent?.getIntExtra(android.os.BatteryManager.EXTRA_PLUGGED, -1) ?: -1
+        val isUsbConnected = plugged == android.os.BatteryManager.BATTERY_PLUGGED_USB
+        if (isUsbConnected) score -= 15
 
 
         if (score < 0) score = 0
@@ -55,16 +63,18 @@ object SecurityScanner {
             is_rooted = isRooted,
             is_usb_debugging = isUsbDebugging,
             is_emulator = isEmulator,
-            is_sideloaded = isSideloaded
+            is_sideloaded = isSideloaded,
+            is_usb_connected = isUsbConnected
         )
     }
 
+    // Helper: Check for test-keys OR dev-keys
     private fun checkRootMethod1(): Boolean {
         val buildTags = Build.TAGS
-        return buildTags != null && buildTags.contains("test-keys")
+        return buildTags != null && (buildTags.contains("test-keys") || buildTags.contains("dev-keys"))
     }
 
-
+    // Helper: Check for binary files (Standard check)
     private fun checkRootMethod2(): Boolean {
         val paths = arrayOf(
             "/system/app/Superuser.apk",

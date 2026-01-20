@@ -7,10 +7,12 @@
 ## 🚀 Key Features
 
 ### 📱 Android SDK (Client)
-* **Root Detection:** Detects `su` binaries and test-keys to identify compromised OS kernels.
-* **Environment Integrity:** Identifies if the app is running on an Emulator or a real device.
-* **Interface Security:** Detects active USB Debugging (ADB) sessions which allow external tampering.
-* **Sideload Detection:** Flags apps installed via unofficial sources (not Google Play).
+* **Advanced Root Detection:** Identifies compromised OS kernels by detecting `su` binaries, `Superuser.apk`, and "test-keys" signatures used in developer images.
+* **Environment Integrity:** Distinguishes between real physical devices and emulators (including advanced detection for "Google APIs" developer images).
+* **Interface Security:**
+    * **ADB Detection:** Flags active USB Debugging sessions that allow external tampering.
+    * **Physical USB Detection:** Detects if the device is plugged into a data port (Computer) vs. a power source, mitigating "Juice Jacking" risks.
+* **Sideload Detection:** Identifies apps installed via unofficial sources (not Google Play). *Currently configured as a warning (0 score penalty) for development testing.*
 * **Real-time Scoring:** Generates a security score (0-100) and enables/disables sensitive UI features automatically.
 
 ### ☁️ Cloud Backend (Server)
@@ -22,11 +24,11 @@
 
 ## 🏗️ Architecture
 
-1.  **The App:** Uses the `Sentinel SDK` to scan the device.
+1.  **The App:** Uses the `Sentinel SDK` to scan the device locally.
 2.  **The Bridge:** Sends a JSON report (`device_id`, `score`, `risk_factors`) to the AWS Cloud.
-3.  **The Core:** AWS EC2 Server processes the data and timestamps it.
-4.  **The Vault:** MongoDB Atlas stores the record.
-5.  **The View:** The Admin Portal fetches data from AWS to display threat analytics.
+3.  **The Core:** AWS EC2 Server processes the data, timestamps it, and sanitizes inputs.
+4.  **The Vault:** MongoDB Atlas stores the immutable security record.
+5.  **The View:** The Admin Portal fetches live data from AWS to visualize threat vectors in real-time.
 
 ---
 
@@ -62,11 +64,11 @@
     ```kotlin
     private const val BASE_URL = "http://YOUR_AWS_IP:5000/"
     ```
-4.  Ensure `android:usesCleartextTraffic="true"` is added to the App's `AndroidManifest.xml` (required for HTTP communication).
+4.  Ensure `android:usesCleartextTraffic="true"` is added to the App's `AndroidManifest.xml` (required for HTTP communication with the cloud).
 
 ### 3. Admin Portal Setup
-1.  Open `admin.html` locally.
-2.  Update the `API_URL` const variable to match your AWS IP.
+1.  Open `admin.html` on your local machine.
+2.  Update the `API_URL` const variable to match your AWS Public IP.
 3.  Open the file in any web browser to view the dashboard.
 
 ---
@@ -79,11 +81,19 @@ To use the scanner in your Android App:
 // 1. Run the scan
 val report = SecurityScanner.scan(context)
 
-// 2. Use the data
+// 2. Use the data to protect the UI
 if (report.score < 50) {
     // Block sensitive transaction
     transferButton.isEnabled = false
+    statusText.text = "Environment Unsafe"
 }
 
-// 3. Send to Cloud
-SentinelNetwork.api.sendReport(report).enqueue(...)
+// 3. Send report to Cloud
+SentinelNetwork.api.sendReport(report).enqueue(object : Callback<Void> {
+    override fun onResponse(call: Call<Void>, response: Response<Void>) {
+        Log.d("Sentinel", "Report uploaded successfully")
+    }
+    override fun onFailure(call: Call<Void>, t: Throwable) {
+        Log.e("Sentinel", "Upload failed")
+    }
+})
