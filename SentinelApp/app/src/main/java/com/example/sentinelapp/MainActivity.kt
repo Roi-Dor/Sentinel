@@ -43,13 +43,12 @@ class MainActivity : ComponentActivity() {
             // 2. Update State (Compose will re-draw automatically)
             score = report.score
             statusText = "Security Score: ${report.score}/100"
-            isTransactionAllowed = (report.score >= 50)
+            isTransactionAllowed = (report.score >= 80)
 
             // 3. Send to Cloud
             SentinelNetwork.api.sendReport(report).enqueue(object : Callback<Void?> {
                 override fun onResponse(call: Call<Void?>, response: Response<Void?>) {
-                    // Optional: Show a toast on success
-                    // Toast.makeText(this@MainActivity, "Report Sent!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Report Sent!", Toast.LENGTH_SHORT).show()
                 }
                 override fun onFailure(call: Call<Void?>, t: Throwable) {
                     // Handle error

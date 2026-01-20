@@ -14,7 +14,7 @@ interface SentinelApi {
 }
 
 object SentinelNetwork {
-    private const val BASE_URL = "http://54.163.206.55:5000/"
+    private const val BASE_URL = "http://54.157.240.125:5000/"
 
     private val retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)

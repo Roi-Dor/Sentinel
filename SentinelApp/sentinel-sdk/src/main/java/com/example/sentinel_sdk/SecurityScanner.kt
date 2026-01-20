@@ -23,7 +23,7 @@ object SecurityScanner {
         // ---------------------------------------------------
         val adbSetting = Settings.Global.getInt(context.contentResolver, Settings.Global.ADB_ENABLED, 0)
         val isUsbDebugging = (adbSetting == 1)
-        if (isUsbDebugging) score -= 20
+        if (isUsbDebugging) score -= 30
 
         // ---------------------------------------------------
         // CHECK 3: Emulator Detection (The bot risk)

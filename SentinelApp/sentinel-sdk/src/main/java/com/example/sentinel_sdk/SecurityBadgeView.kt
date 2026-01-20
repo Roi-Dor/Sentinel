@@ -16,7 +16,7 @@ class SecurityBadgeView @JvmOverloads constructor(
 
     fun setScore(score: Int) {
         val color = when {
-            score >= 90 -> Color.parseColor("#4CAF50") // Green
+            score >= 80 -> Color.parseColor("#4CAF50") // Green
             score >= 50 -> Color.parseColor("#FFC107") // Yellow
             else -> Color.parseColor("#F44336") // Red
         }
