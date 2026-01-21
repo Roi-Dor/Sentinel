@@ -57,7 +57,7 @@ object SecurityScanner {
         if (score < 0) score = 0
 
         return SecurityReport(
-            device_id = UUID.randomUUID().toString(),
+            device_id = getStableDeviceId(context),
             app_id = context.packageName,
             score = score,
             is_rooted = isRooted,
@@ -91,5 +91,19 @@ object SecurityScanner {
             if (File(path).exists()) return true
         }
         return false
+    }
+    private fun getStableDeviceId(context: Context): String {
+        val sharedPrefs = context.getSharedPreferences("SentinelPrefs", Context.MODE_PRIVATE)
+
+        // Try to read the existing ID
+        var uuid = sharedPrefs.getString("device_id", null)
+
+        // If it doesn't exist (first run), create it and save it
+        if (uuid == null) {
+            uuid = java.util.UUID.randomUUID().toString()
+            sharedPrefs.edit().putString("device_id", uuid).apply()
+        }
+
+        return uuid!!
     }
 }
